@@ -1,36 +1,43 @@
 const asteriskManager = require("asterisk-manager")
 const config = require("../config/config")
 
-class AMI{
+class AMI {
 
 
 
-    constructor(){
+    constructor() {
 
         this.ami = null
         this.connected = false
     }
 
 
-    connect(){
+    connect() {
+        const { host, pass, port, user } = config.ami_config;
 
-        const { host,pass,port,user } = config.ami_config
-
-        this.ami = new asteriskManager(port,host,user,pass, true)
+        this.ami = new asteriskManager(port, host, user, pass, true);
 
         this.ami.on('connect', () => {
-            this.connect = true
-            console.log("Connect to AMI")
-
-        })
+            this.connected = true;
+            console.log("Conectado exitosamente a AMI");
+        });
 
         this.ami.on('disconnect', () => {
-            this.connect = false
-            console.error("Disconnect from AMI")
-        })
+            this.connected = false;
+            console.error("Desconectado de AMI");
+        });
+
+        this.ami.on('error', (err) => {
+            console.error("Error en conexión AMI:", err);
+        });
+
+        // Permitir que otros módulos escuchen todos los eventos
+        this.ami.on('managerevent', (evt) => {
+            // Log opcional para depuración
+            // console.log("Evento AMI:", evt.event);
+        });
     }
 }
 
-
-
-const amiService = new AMI()
+const amiService = new AMI();
+module.exports = amiService;

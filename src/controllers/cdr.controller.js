@@ -2,11 +2,11 @@ const express = require("express")
 const daoCDR = require('../dao/cdr')
 
 
-const obtenerLlamadasNormalizadas = async  (req = express.request, res = express.response ) => {
+const obtenerLlamadasNormalizadas = async (req = express.request, res = express.response) => {
 
     try {
         const llamadas = await daoCDR.obtenerLlamadasNormalizadas()
-        
+
         res.status(200).json(llamadas)
     } catch (error) {
         console.log(error)
@@ -14,8 +14,8 @@ const obtenerLlamadasNormalizadas = async  (req = express.request, res = express
             msg: "Error al obtener llamadas normalizadas",
             error
         })
-    }    
-    
+    }
+
 }
 
 const obtenerEstadisticasAgentes = async (req = express.request, res = express.response) => {
@@ -56,11 +56,21 @@ const obtenerEstadisticasPorColas = async (req = express.request, res = express.
             error
         })
     }
-} 
+}
+
+const obtenerTotalLlamadasHoy = async (req = express.request, res = express.response) => {
+    try {
+        const total = await daoCDR.obtenerTotalLlamadasHoy();
+        return res.status(200).json({ total });
+    } catch (error) {
+        return res.status(500).json({ msg: "Error al obtener total del día", error });
+    }
+}
 
 module.exports = {
     obtenerLlamadasNormalizadas,
     obtenerEstadisticasAgentes,
     obtenerLlamadasPorColas,
-    obtenerEstadisticasPorColas
+    obtenerEstadisticasPorColas,
+    obtenerTotalLlamadasHoy
 }

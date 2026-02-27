@@ -32,7 +32,35 @@ const obtenerEstadisticasAgentes = async (req = express.request, res = express.r
     }
 }
 
+const obtenerLlamadasPorColas = async (req = express.request, res = express.response) => {
+
+    try {
+        const llamadasPorColas = await daoCDR.obtenerLlamadasPorColas()
+        return res.status(200).json(llamadasPorColas)
+    } catch (error) {
+        return res.status(500).json({
+            msg: "Error al obtener llamadas por colas",
+            error
+        })
+    }
+}
+
+const obtenerEstadisticasPorColas = async (req = express.request, res = express.response) => {
+
+    try {
+        const llamadasPorColas = await daoCDR.obtenerEstadisticasPorColas()
+        return res.status(200).json(llamadasPorColas)
+    } catch (error) {
+        return res.status(500).json({
+            msg: "Error al obtener estadisticas por colas",
+            error
+        })
+    }
+} 
+
 module.exports = {
     obtenerLlamadasNormalizadas,
-    obtenerEstadisticasAgentes
+    obtenerEstadisticasAgentes,
+    obtenerLlamadasPorColas,
+    obtenerEstadisticasPorColas
 }

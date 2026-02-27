@@ -20,8 +20,11 @@ class AMIListener {
 
         // Nueva llamada
         ami.on('newchannel', (evt) => {
-            const call = callStateManager.updateCall(evt.linkedid, {
-                numero_origen: evt.calleridnum,
+            const callId = evt.linkedid || evt.uniqueid;
+            if (!callId) return;
+
+            const call = callStateManager.updateCall(callId, {
+                numero_origen: evt.calleridnum || evt.callerid,
                 destino: evt.exten,
                 estado: 'RINGING'
             });
@@ -36,7 +39,10 @@ class AMIListener {
 
         // Entrada a Cola
         ami.on('queuecallerjoin', (evt) => {
-            const call = callStateManager.updateCall(evt.linkedid, {
+            const callId = evt.linkedid || evt.uniqueid;
+            if (!callId) return;
+
+            const call = callStateManager.updateCall(callId, {
                 cola: evt.queue,
                 estado: 'WAITING',
                 inicio_espera: new Date()
@@ -53,16 +59,21 @@ class AMIListener {
 
         // Agente Conecta (Llamada contestada)
         ami.on('agentconnect', (evt) => {
-            const call = callStateManager.updateCall(evt.linkedid, {
-                agente: evt.membername,
+            const callId = evt.linkedid || evt.uniqueid;
+            if (!callId) return;
+
+            const call = callStateManager.updateCall(callId, {
+                agente: evt.membername || evt.connectedlinename,
                 estado: 'CONNECTED',
                 inicio_conversacion: new Date()
             });
 
-            agentStateManager.updateAgent(evt.membername, {
-                estado: 'OCUPADO',
-                llamada_actual: evt.linkedid
-            });
+            if (call.agente) {
+                agentStateManager.updateAgent(call.agente, {
+                    estado: 'OCUPADO',
+                    llamada_actual: callId
+                });
+            }
 
             socketService.emit('call:answered', {
                 linkedid: call.linkedid,
@@ -71,12 +82,15 @@ class AMIListener {
                 timestamp: new Date().toISOString()
             });
 
-            this.broadcastQueueUpdate(call.cola);
+            if (call.cola) this.broadcastQueueUpdate(call.cola);
         });
 
         // Fin de llamada
         ami.on('hangup', (evt) => {
-            const call = callStateManager.getCall(evt.linkedid);
+            const callId = evt.linkedid || evt.uniqueid;
+            if (!callId) return;
+
+            const call = callStateManager.getCall(callId);
             if (call) {
                 const duracion_total = Math.round((new Date() - call.inicio_llamada) / 1000);
 
@@ -93,7 +107,7 @@ class AMIListener {
                     duracion_total: callStateManager.formatDuration(duracion_total)
                 });
 
-                callStateManager.removeCall(evt.linkedid);
+                callStateManager.removeCall(callId);
                 if (call.cola) this.broadcastQueueUpdate(call.cola);
             }
         });

@@ -18,7 +18,6 @@ class SocketService {
         this.realtime = this.io.of("/realtime");
 
         this.realtime.on('connection', (socket) => {
-            console.log('Cliente conectado al namespace /realtime');
 
             // Podríamos emitir el estado actual al conectar
             socket.emit('auth:success', { connected: true });

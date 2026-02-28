@@ -32,11 +32,9 @@ const conexionAsteriskCDR = mysql.createPool({
 async function initDatabase() {
   try {
     const conn1 = await conexionAsterisk.getConnection();
-    console.log('MySQL Asterisk Conectado');
     conn1.release();
 
     const conn2 = await conexionAsteriskCDR.getConnection();
-    console.log('MySQL Asterisk CDR Conectado');
     conn2.release();
   } catch (error) {
     console.error('Error conexión MySQL:', error);

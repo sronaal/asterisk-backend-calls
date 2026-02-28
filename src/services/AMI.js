@@ -13,28 +13,41 @@ class AMI {
 
 
     connect() {
-        const { host, pass, port, user } = config.ami_config;
+        return new Promise((resolve, reject) => {
+            try {
+                const { host, pass, port, user } = config.ami_config;
 
-        this.ami = new asteriskManager(port, host, user, pass, true);
 
-        this.ami.on('connect', () => {
-            this.connected = true;
-            console.log("Conectado exitosamente a AMI");
-        });
+                this.ami = new asteriskManager(port, host, user, pass, true);
 
-        this.ami.on('disconnect', () => {
-            this.connected = false;
-            console.error("Desconectado de AMI");
-        });
+                this.ami.on('connect', () => {
+                    this.connected = true;
 
-        this.ami.on('error', (err) => {
-            console.error("Error en conexión AMI:", err);
-        });
+                    resolve(this.ami);
+                });
 
-        // Permitir que otros módulos escuchen todos los eventos
-        this.ami.on('managerevent', (evt) => {
-            // Log opcional para depuración
-            // console.log("Evento AMI:", evt.event);
+                this.ami.on('disconnect', () => {
+                    this.connected = false;
+                    console.error("Desconectado de AMI");
+                });
+
+                this.ami.on('error', (err) => {
+                    console.error("Error en conexión AMI:", err);
+                });
+
+                // Permitir que otros módulos escuchen todos los eventos
+                this.ami.on('managerevent', (evt) => {
+                    const eventName = (evt.event || '').toLowerCase();
+                    const relevantEvents = ['newchannel', 'queuecallerjoin', 'agentconnect', 'hangup', 'dialbegin', 'dial', 'bridgeenter', 'bridge'];
+                    if (relevantEvents.includes(eventName)) {
+
+                    }
+                });
+
+            } catch (error) {
+                console.error("Error fatal al iniciar AMI Manager:", error);
+                reject(error);
+            }
         });
     }
 }

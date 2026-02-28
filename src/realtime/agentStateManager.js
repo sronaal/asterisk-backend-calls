@@ -1,3 +1,4 @@
+const { getLicenseStatus } = require("../core/license/licenseValidator");
 /**
  * Gestor de estado para los agentes registrados en las colas.
  */
@@ -10,7 +11,18 @@ class AgentStateManager {
      * Actualiza el estado o información de un agente.
      */
     updateAgent(extension, data) {
-        const existingAgent = this.agents.get(extension) || {
+        const existingAgent = this.agents.get(extension);
+
+        if (!existingAgent) {
+            // Validar límite de agentes antes de crear uno nuevo
+            const status = getLicenseStatus();
+            if (this.getAllAgents().length >= status.agents_limit) {
+                console.warn(`⛔ Límite de licencia alcanzado (${status.agents_limit} agentes). Bloqueando registro para la extensión ${extension}.`);
+                return { extension_agente: extension, estado: 'BLOCKED_BY_LICENSE' };
+            }
+        }
+
+        const agentData = existingAgent || {
             extension_agente: extension,
             nombre: `Agente ${extension}`,
             estado: 'OFFLINE',
@@ -19,7 +31,7 @@ class AgentStateManager {
             ultima_conexion: new Date()
         };
 
-        const updatedAgent = { ...existingAgent, ...data };
+        const updatedAgent = { ...agentData, ...data };
 
         // Manejo especial para colas (siendo un Set)
         if (data.addCola) {
